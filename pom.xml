@@ -2,26 +2,70 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <groupId>org.wikimedia</groupId>
   <artifactId>wikihadoop</artifactId>
-  <version>0.2</version>
+  <version>0.2-wmf1</version>
   <packaging>jar</packaging>
   <name>wikihadoop</name>
   <url>http://github.com/whym/wikihadoop</url>
 
   <repositories>
     <repository>
-      <id>apache-public</id>
-      <url>https://repository.apache.org/content/groups/public/</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
+      <id>central</id>
+      <url>http://repo1.maven.org/maven2</url>
       <releases>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>wmf-mirrored</id>
+      <url>http://archiva.wikimedia.org/repository/mirrored/</url>
     </repository>
   </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <url>http://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>wmf-mirrored</id>
+      <url>http://archiva.wikimedia.org/repository/mirrored/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <distributionManagement>
+    <repository>
+      <id>archiva.internal</id>
+      <name>Internal Release Repository</name>
+      <url>http://archiva.wikimedia.org/repository/internal/</url>
+    </repository>
+    <snapshotRepository>
+      <id>archiva.snapshots</id>
+      <name>Internal Snapshot Repository</name>
+      <url>http://archiva.wikimedia.org/repository/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>2.3.0-cdh5.0.2</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,25 +73,27 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>0.22.0</version>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-common</artifactId>
+       <version>2.3.0-cdh5.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mapred</artifactId>
-      <version>0.22.0</version>
+      <artifactId>hadoop-client</artifactId>
+      <version>2.3.0-cdh5.0.2</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.13</version>
+      <!-- <version>1.2.13</version> -->
+      <version>1.2.17</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.10</version>
+      <!-- <version>4.10</version> -->
+      <version>4.8.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -76,15 +122,6 @@
               <mainClass>org.wikimedia.wikihadoop.StreamWikiDumpInputFormat</mainClass>
             </manifest>
           </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-	<version>2.4</version>
-        <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
         </configuration>
       </plugin>
     </plugins>
