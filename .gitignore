@@ -1,2 +1,5 @@
 target/
 mapred
+.idea/
+out
+wikihadoop.iml
