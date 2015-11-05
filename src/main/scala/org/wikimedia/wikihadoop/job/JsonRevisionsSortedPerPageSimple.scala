@@ -6,7 +6,7 @@ import org.apache.crunch.scrunch.PipelineApp
 import org.apache.crunch.types.writable.Writables
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.wikimedia.wikihadoop.inputformatnewapi.{MediaWikiRevisionXMLToFlatJSONInputFormat, MediaWikiRevisionXMLToJSONInputFormat}
+import org.wikimedia.wikihadoop.inputformatnewapi.MediaWikiRevisionXMLToFlatJSONInputFormat
 
 /**
  * Created by Joseph Allemandou
@@ -14,7 +14,7 @@ import org.wikimedia.wikihadoop.inputformatnewapi.{MediaWikiRevisionXMLToFlatJSO
  * Time: 9:19 AM
  * Copyright Joseph Allemandou - 2014
  */
-object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
+object JsonRevisionsSortedPerPageSimple extends PipelineApp with Logging {
 
   var params: Params = Params()
 
@@ -23,10 +23,6 @@ object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
    */
   case class Params(inputPath: String = "",
                     outputPath: String = "",
-                    sort: Boolean = true,
-                    nsZeroOnly: Boolean = false,
-                    metadataOnly: Boolean = false,
-                    flattenedJson: Boolean = true,
                     numReducers: Int = 0,
                     taskTimeout: Int = 1800000,
                     mapperMb: Int = 4096,
@@ -51,22 +47,6 @@ object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
     opt[String]('o', "output-path") required() valueName ("<path>") action { (x, p) =>
       p.copy(outputPath = if (x.endsWith("/")) x else x + "/")
     } text "Output path where to store the results."
-
-    opt[Unit]('n', "not-sorted") action { (_, p) =>
-      p.copy(sort = true)
-    } text "Sort revisions or leave."
-
-    opt[Unit]('z', "ns-zero-only") action { (_, p) =>
-      p.copy(nsZeroOnly = true)
-    } text "Filter to keep only namespace 0 pages."
-
-    opt[Unit]('m', "metadata-only") action { (_, p) =>
-      p.copy(metadataOnly = true)
-    } text "Filter to keep only metadata information (no text)."
-
-    opt[Unit]('h', "hierarchical-json") action { (_, p) =>
-      p.copy(flattenedJson = false)
-    } text "Generate hierarchical json instead of flattened one."
 
     opt[Int]('r', "reducers") required() action { (x, p) =>
       p.copy(numReducers = x)
@@ -94,30 +74,6 @@ object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
 
   }
 
-  def flatMapFun(jsonString: String): TraversableOnce[(Long, (String, String))] = {
-    val rev = parse(jsonString)
-    // Remove full raw if namespace zero only and namespace != 0
-    if (params.nsZeroOnly && ((params.flattenedJson && (rev \ "page_namespace").asInstanceOf[JInt].num.toLong == 0L)
-        || (!params.flattenedJson && (rev \ "page" \ "namespace").asInstanceOf[JInt].num.toLong == 0L)))
-      Seq.empty[(Long,(String, String))]
-    else {
-      // Remove text if metadata only
-      if (params.metadataOnly) {
-        val frev = rev removeField {
-          case JField("text", _) => true
-          case _ => false
-        }
-        Seq((if (params.flattenedJson) (frev \ "page_id").asInstanceOf[JInt].num.toLong else (frev \ "page" \ "id").asInstanceOf[JInt].num.toLong,
-          ((frev \ "timestamp").asInstanceOf[JString].s,
-            frev toString)))
-      } else {
-        Seq((if (params.flattenedJson) (rev \ "page_id").asInstanceOf[JInt].num.toLong else (rev \ "page" \ "id").asInstanceOf[JInt].num.toLong,
-          ((rev \ "timestamp").asInstanceOf[JString].s,
-            jsonString)))
-      }
-    }
-  }
-
   override def run(args: Array[String]) {
 
     argsParser.parse(args, Params()) match {
@@ -133,17 +89,20 @@ object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
 
         val revJsonSource = from.formattedFile(
           params.inputPath,
-          if (params.flattenedJson) classOf[MediaWikiRevisionXMLToFlatJSONInputFormat] else classOf[MediaWikiRevisionXMLToJSONInputFormat],
+          classOf[MediaWikiRevisionXMLToFlatJSONInputFormat],
           Writables.longs,
           Writables.strings
         )
 
-        val revsToSort = read(revJsonSource).values()
-          .flatMap(flatMapFun)
-
-        val sortedRevs = revsToSort.secondarySortAndMap(
-          (_: Long, itv: Iterable[(String, String)]) => itv.map(_._2),
-          numReducers = params.numReducers)
+        val sortedRevs = read(revJsonSource).values()
+          .map(jsonString => {
+            val rev = parse(jsonString)
+            ((rev \ "page_id").asInstanceOf[JInt].num.toLong,
+              ((rev \ "timestamp").asInstanceOf[JString].s,
+                jsonString))
+          })
+          .secondarySortAndMap((_: Long, itv: Iterable[(String, String)]) => itv.map(_._2),
+            numReducers = params.numReducers)
 
         val textFileTarget =  Compress.compress(to.textFile(params.outputPath),
           classOf[org.apache.hadoop.io.compress.BZip2Codec])

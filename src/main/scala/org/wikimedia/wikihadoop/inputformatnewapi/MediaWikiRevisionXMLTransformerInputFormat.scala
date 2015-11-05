@@ -8,9 +8,6 @@ import org.apache.hadoop.io.compress.{CompressionCodecFactory, SplittableCompres
 import org.apache.hadoop.io.{DataOutputBuffer, LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.{FileInputFormat, FileSplit}
 import org.apache.hadoop.mapreduce.{InputSplit, JobContext, RecordReader, TaskAttemptContext}
-import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization
-
 
 /**
  * Modified from DBPedia distibuted extraction framework (https://github.com/dbpedia/distributed-extraction-framework)
@@ -21,9 +18,9 @@ import org.json4s.jackson.Serialization
  * The WikiRevisionXMLToJSONRecordReader class inside outputs a Text as value and the starting position (byte) as key.
  *
  */
-class MediaWikiRevisionXMLToJSONInputFormat extends FileInputFormat[LongWritable, Text] {
+abstract class MediaWikiRevisionXMLTransformerInputFormat[TOF <: MediaWikiObjectsFactory](objectsFactory: TOF) extends FileInputFormat[LongWritable, Text] {
 
-  private val LOG = LogFactory.getLog(classOf[MediaWikiRevisionXMLToJSONInputFormat])
+  private val LOG = LogFactory.getLog(classOf[MediaWikiRevisionXMLTransformerInputFormat[TOF]])
 
   protected override def isSplitable(context: JobContext, file: Path): Boolean =
   {
@@ -36,17 +33,18 @@ class MediaWikiRevisionXMLToJSONInputFormat extends FileInputFormat[LongWritable
     val split = genericSplit.asInstanceOf[FileSplit]
     LOG.info("getRecordReader start.....split=" + split)
     context.setStatus(split.toString)
-    new WikiRevisionXMLToJSONRecordReader(split, context)
+
+    new WikiRevisionXMLTransformerRecordReader[TOF](split, context, objectsFactory)
   }
 
-  private class WikiRevisionXMLToJSONRecordReader(split: FileSplit, context: TaskAttemptContext) extends RecordReader[LongWritable, Text] {
+  private class WikiRevisionXMLTransformerRecordReader[TOF <: MediaWikiObjectsFactory](split: FileSplit, context: TaskAttemptContext, objectsFactory: TOF) extends RecordReader[LongWritable, Text] {
     private var key: LongWritable = null
     private var value: Text = null
 
     private val conf = context.getConfiguration
 
     private val contentBuffer = new DataOutputBuffer()
-    private var pageMetaData: MediaWikiObjectsMapFactory.MediaWikiPageMetaDataMap = null
+
     private var isFirstAfterInit = false
 
     private val inputStream = SeekableInputStream(split,
@@ -55,12 +53,10 @@ class MediaWikiRevisionXMLToJSONInputFormat extends FileInputFormat[LongWritable
 
     private val matcher = new ByteMatcher(inputStream)
 
-    var byteArrayInputStream: ByteArrayInputStream = null
+    private var byteArrayInputStream: ByteArrayInputStream = null
 
-    val mediaWikiXMLParser: MediaWikiXMLParser[MediaWikiObjectsMapFactory.type] = new MediaWikiXMLParser(MediaWikiObjectsMapFactory)
-
-    // Needed for json serialization
-    implicit val formats = DefaultFormats
+    private val mediaWikiXMLParser = new MediaWikiXMLParser(objectsFactory)
+    private var pageMetaData: mediaWikiXMLParser.objectsFactory.V = null.asInstanceOf[mediaWikiXMLParser.objectsFactory.V]
 
     private val (start, end) = {
       inputStream match {
@@ -158,7 +154,8 @@ class MediaWikiRevisionXMLToJSONInputFormat extends FileInputFormat[LongWritable
         // Json Object of revision is created parsing the XML
         // and adding context page meta data
         val byteArrayInputStream = new ByteArrayInputStream(contentBuffer.getData.take(contentBuffer.getLength))
-        value.set(Serialization.write(mediaWikiXMLParser.parseRevision(byteArrayInputStream, pageMetaData).m))
+        value.set(mediaWikiXMLParser.objectsFactory.toText(mediaWikiXMLParser.parseRevision(
+          mediaWikiXMLParser.initializeXmlStreamReader(byteArrayInputStream), pageMetaData)))
         contentBuffer.reset()
 
         return true

@@ -192,8 +192,8 @@ class MediaWikiXMLParser[T <: MediaWikiObjectsFactory](val objectsFactory: T) {
       }
     })
 
-  def parseRevision(inputStreamReader: InputStream, pageMetaData: objectsFactory.V): objectsFactory.T =
-    parseRevision(initializeXmlStreamReader(inputStreamReader), pageMetaData)
+  //def parseRevision(inputStreamReader: InputStream, pageMetaData: objectsFactory.V): objectsFactory.T =
+  //  parseRevision(initializeXmlStreamReader(inputStreamReader), pageMetaData)
 
   def parseRevision(xmlStreamReader: XMLStreamReader2, pageMetaData: objectsFactory.V): objectsFactory.T =
     parseRevision_rec(xmlStreamReader, objectsFactory.makeDummyRevision.setPageMetaData(pageMetaData))

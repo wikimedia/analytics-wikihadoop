@@ -1,5 +1,7 @@
 package org.wikimedia.wikihadoop.inputformatnewapi
 
+import org.apache.hadoop.io.Text
+
 /**
  * Created by jo on 4/11/15.
  */
@@ -41,5 +43,7 @@ trait MediaWikiObjectsFactory {
   def makeDummyRevision: T
   def makeDummyContributor: U
   def makeDummyPageMetaData: V
+
+  def toText(revision: T): Text
 
 }
