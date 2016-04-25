@@ -1,5 +1,7 @@
 package org.wikimedia.wikihadoop.inputformatnewapi
 
+import org.apache.hadoop.io.{Text, LongWritable}
+
 
 /**
  * Modified from DBPedia distibuted extraction framework (https://github.com/dbpedia/distributed-extraction-framework)
@@ -14,3 +16,16 @@ class MediaWikiRevisionXMLToJSONInputFormat extends MediaWikiRevisionXMLTransfor
 
 class MediaWikiRevisionXMLToFlatJSONInputFormat extends MediaWikiRevisionXMLTransformerInputFormat[MediaWikiObjectsFlatMapFactory](new MediaWikiObjectsFlatMapFactory) {}
 
+class MediaWikiRevisionXMLToFlatJSONInputFormatPageIdKey
+  extends MediaWikiRevisionXMLTransformerInputFormatAbstract
+    [LongWritable, Text, MediaWikiObjectsFlatMapFactory](new MediaWikiObjectsFlatMapFactory) {
+  override def newKey(): LongWritable = new LongWritable()
+  override def setKey(key: LongWritable, rev: MediaWikiObjectsFlatMapFactory#MediaWikiRevision): Unit = {
+    key.set(rev.getPageMetaData().getId())
+  }
+
+  override def newValue(): Text = new Text()
+  override def setValue(value: Text, rev: MediaWikiObjectsFlatMapFactory#MediaWikiRevision): Unit = {
+    value.set(objectsFactory.toText(rev.asInstanceOf[objectsFactory.T]))
+  }
+}

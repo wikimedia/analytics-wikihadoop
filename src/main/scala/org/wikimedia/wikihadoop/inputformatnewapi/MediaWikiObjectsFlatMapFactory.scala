@@ -16,12 +16,9 @@ class MediaWikiObjectsFlatMapFactory extends MediaWikiObjectsMapFactory {
     })
   }
 
-
   override def toText(revision: MediaWikiRevisionMap): Text = {
     new Text(Serialization.write(flatten_map_rec(revision.m, Map(), "")))
   }
-
-
 
 }
 

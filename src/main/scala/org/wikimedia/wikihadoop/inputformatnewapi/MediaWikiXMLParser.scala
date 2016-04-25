@@ -13,7 +13,7 @@ import scala.annotation.tailrec
  * Builds revision objects using MediaWikiRevisionFactory trait.
  * Page metadata parsing expects pages without revisions or uploads.
  */
-class MediaWikiXMLParser[T <: MediaWikiObjectsFactory](val objectsFactory: T) {
+class MediaWikiXMLParser[F <: MediaWikiObjectsFactory](val objectsFactory: F) {
 
   val xmlInputFactory = XMLInputFactory.newInstance match {
     case xmlInputFactory2: XMLInputFactory2 => xmlInputFactory2

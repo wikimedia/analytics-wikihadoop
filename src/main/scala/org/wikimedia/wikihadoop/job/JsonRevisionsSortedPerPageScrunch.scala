@@ -2,7 +2,7 @@ package org.wikimedia.wikihadoop.job
 
 import _root_.scopt.OptionParser
 import org.apache.crunch.io.Compress
-import org.apache.crunch.scrunch.PipelineApp
+import org.apache.crunch.scrunch.{PTable, PipelineApp}
 import org.apache.crunch.types.writable.Writables
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -14,7 +14,7 @@ import org.wikimedia.wikihadoop.inputformatnewapi.{MediaWikiRevisionXMLToFlatJSO
  * Time: 9:19 AM
  * Copyright Joseph Allemandou - 2014
  */
-object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
+object JsonRevisionsSortedPerPageScrunch extends PipelineApp with Logging {
 
   var params: Params = Params()
 
@@ -138,11 +138,11 @@ object JsonRevisionsSortedPerPage extends PipelineApp with Logging {
           Writables.strings
         )
 
-        val revsToSort = read(revJsonSource).values()
+        val revsToSort: PTable[Long, (String, String)] = read(revJsonSource).values()
           .flatMap(flatMapFun)
 
-        val sortedRevs = revsToSort.secondarySortAndMap(
-          (_: Long, itv: Iterable[(String, String)]) => itv.map(_._2),
+        val sortedRevs = revsToSort.secondarySortAndFlatMap(
+          (_: Long, itv: Iterable[(String, String)]) => for (v <- itv) yield v._2,
           numReducers = params.numReducers)
 
         val textFileTarget =  Compress.compress(to.textFile(params.outputPath),
