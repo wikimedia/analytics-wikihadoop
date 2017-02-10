@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wikimedia.wikihadoop;
+package org.wikimedia.wikihadoop.oldapi;
 
 import java.io.*;
 
@@ -23,7 +23,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.mapred.FileSplit;
-import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.io.compress.*;
 
 public class SeekableInputStream extends FilterInputStream implements Seekable {

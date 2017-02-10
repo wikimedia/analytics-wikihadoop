@@ -25,8 +25,6 @@ import java.util.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.FileSplit;
@@ -37,9 +35,11 @@ import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.io.compress.bzip2.*;
-import java.util.regex.*;
 
 import org.junit.Test;
+import org.wikimedia.wikihadoop.oldapi.SeekableInputStream;
+import org.wikimedia.wikihadoop.oldapi.StreamWikiDumpInputFormat;
+
 import static org.junit.Assert.*;
 
 public class TestStreamWikiDumpInputFormat {

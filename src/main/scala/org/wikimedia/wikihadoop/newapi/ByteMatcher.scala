@@ -1,4 +1,4 @@
-package org.wikimedia.wikihadoop.inputformatnewapi
+package org.wikimedia.wikihadoop.newapi
 
 import java.io.InputStream
 

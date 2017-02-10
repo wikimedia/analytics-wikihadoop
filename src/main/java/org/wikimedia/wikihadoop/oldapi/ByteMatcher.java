@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wikimedia.wikihadoop;
+package org.wikimedia.wikihadoop.oldapi;
 
 import java.io.*;
 

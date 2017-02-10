@@ -73,7 +73,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.wikimedia.wikihadoop.StreamWikiDumpInputFormat</mainClass>
+                            <mainClass>org.wikimedia.wikihadoop.oldapi.StreamWikiDumpInputFormat</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

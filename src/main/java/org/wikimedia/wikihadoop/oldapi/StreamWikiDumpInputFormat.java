@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.wikimedia.wikihadoop;
+package org.wikimedia.wikihadoop.oldapi;
 
 import java.io.*;
 import java.util.*;
 
 import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.net.NetworkTopology;
