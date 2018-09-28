@@ -259,7 +259,7 @@ abstract class MediawikiXMLRevisionInputFormat
         val rev = mediaWikiXMLParser.parseRevision(xmlStreamReader2, pageMetaData)
         contentBuffer.reset()
         // Recurse over nextKeyValue if the found revision is to be filtered out of result set
-        if (!filterOut(rev)) {
+        if (filterOut(rev)) {
           nextKeyValue()
         } else {
           // Update key and value and return true
